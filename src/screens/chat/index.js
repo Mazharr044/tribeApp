@@ -13,156 +13,10 @@ import {
 import apiClient from "../../api";
 import useParticipantStore from "../../store/participantStore";
 
-const dummyMessages = [
-  {
-    id: "1",
-    user: {
-      name: "Ali",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    time: "9:00 PM",
-    text: "Hello!",
-    edited: false,
-    reactions: { "👍": 1, "❤️": 1 },
-    image: null,
-  },
-  {
-    id: "2",
-    user: {
-      name: "Ali",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    time: "9:01 PM",
-    text: "How are you?",
-    edited: true,
-    reactions: [],
-    image: null,
-  },
-  {
-    id: "3",
-    user: {
-      name: "Sara",
-      avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-    },
-    time: "9:02 PM",
-    text: "",
-    edited: false,
-    reactions: { "😂": 3 },
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: "4",
-    user: {
-      name: "Sara",
-      avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-    },
-    time: "9:03 PM",
-    text: "Just sent you a photo!",
-    edited: false,
-    reactions: { "🔥": 1 },
-    image: null,
-  },
-  {
-    id: "5",
-    user: {
-      name: "You",
-      avatar: "https://randomuser.me/api/portraits/men/10.jpg",
-    },
-    time: "9:05 PM",
-    text: "Looks awesome 😍",
-    edited: false,
-    reactions: {},
-    image: null,
-  },
-  {
-    id: "6",
-    user: {
-      name: "Ahmed",
-      avatar: "https://randomuser.me/api/portraits/men/5.jpg",
-    },
-    time: "9:07 PM",
-    text: "Guys, what’s the plan for tonight?",
-    edited: false,
-    reactions: { "😂": 1 },
-    image: null,
-  },
-  {
-    id: "7",
-    user: {
-      name: "You",
-      avatar: "https://randomuser.me/api/portraits/men/10.jpg",
-    },
-    time: "9:08 PM",
-    text: "Dinner at 9:30?",
-    edited: true,
-    reactions: { "👍": 2 },
-    image: null,
-  },
-  {
-    id: "8",
-    user: {
-      name: "Ali",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    time: "9:10 PM",
-    text: "I’m in!",
-    edited: false,
-    reactions: { "👍": 2, "😂": 1 },
-    image: null,
-  },
-  {
-    id: "9",
-    user: {
-      name: "Sara",
-      avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-    },
-    time: "9:11 PM",
-    text: "Let’s go!",
-    edited: false,
-    reactions: { "🔥": 1 },
-    image: null,
-  },
-  {
-    id: "10",
-    user: {
-      name: "Ahmed",
-      avatar: "https://randomuser.me/api/portraits/men/5.jpg",
-    },
-    time: "9:12 PM",
-    text: "Sending location 📍",
-    edited: false,
-    reactions: [],
-    image: null,
-  },
-  {
-    id: "11",
-    user: {
-      name: "Ahmed",
-      avatar: "https://randomuser.me/api/portraits/men/5.jpg",
-    },
-    time: "9:13 PM",
-    text: "Goof",
-    edited: false,
-    reactions: [],
-    // image: 'https://picsum.photos/201',
-  },
-  {
-    id: "12",
-    user: {
-      name: "Ahmed",
-      avatar: "https://randomuser.me/api/portraits/men/5.jpg",
-    },
-    time: "9:13 PM",
-    text: "Noce",
-    edited: false,
-    reactions: [],
-    // image: 'https://picsum.photos/201',
-  },
-];
+
 
 const ChatScreen = () => {
-  const [messages, setMessages] = useState(dummyMessages);
-  const [allMessage, setAllMessage] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [selectedMessageId, setSelectedMessageId] = useState(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState(null);
@@ -171,14 +25,12 @@ const ChatScreen = () => {
   const getAllMessages = async () => {
     try {
       const response = await apiClient.get("/messages/all");
-      setAllMessage(response?.data);
-      // setMessages(response?.data)
+      setMessages(response?.data)
     } catch (error) {
       console.error("Failed to fetch messages:", error);
       throw error;
     }
   };
-  // console.log("UUID---->",allMessage.map((item)=>item?.uuid));
   const fetchParticipants = useParticipantStore(
     (state) => state.fetchParticipants
   );
@@ -192,86 +44,93 @@ const ChatScreen = () => {
       flatListRef.current.scrollToEnd({ animated: true });
     }
   }, [messages]);
-  const renderMessageItem = ({ item, index }) => {
-    const participant = useParticipantStore
-      .getState()
-      .getParticipantByUUID(item?.uuid);
-    // if (!participant) return null;
-    const isFirstOfGroup =
-      index === 0 || messages[index - 1].user.name !== item.user.name;
-     console.log("Image---->",item);
-     
-    const isCurrentUser = item.user.name === "You";
+  
+const renderMessageItem = ({ item, index }) => {
+  const participant = useParticipantStore
+    .getState()
+    .getParticipantByUUID(item?.authorUuid);
 
-    return (
-      <View style={{ marginBottom: 0 }}>
-        {isFirstOfGroup && !isCurrentUser && (
-          <View style={styles.header}>
-            <Image source={{ uri: item.user.avatar }} style={styles.avatar} />
-            <Text style={styles.name}>{item.user.name}</Text>
-            <Text style={styles.time}>{item.time}</Text>
-          </View>
+  if (!participant) return null; // participant na ho to skip
+
+  const isFirstOfGroup =
+    index === 0 ||
+    messages[index - 1]?.authorUuid !== item.authorUuid;
+
+  const isCurrentUser = participant.name === "You";
+
+  // date format (example)
+  const messageTime = new Date(item.sentAt).toLocaleTimeString();
+
+  return (
+    <View style={{ marginBottom: 0 }}>
+      {isFirstOfGroup && !isCurrentUser && (
+        <View style={styles.header}>
+          <Image source={{ uri: participant.avatarUrl }} style={styles.avatar} />
+          <Text style={styles.name}>{participant.name}</Text>
+          <Text style={styles.time}>{messageTime}</Text>
+        </View>
+      )}
+
+      <View
+        style={[
+          styles.messageWrapper,
+          isCurrentUser ? styles.rightAlign : styles.leftAlign,
+        ]}
+      >
+        {item.text ? (
+          <Pressable
+            onLongPress={() => {
+              setSelectedMessageId(item.uuid);
+              setHighlightedMessageId(item.uuid);
+            }}
+            style={[
+              styles.messageBubble,
+              isCurrentUser
+                ? styles.currentUserBubble
+                : styles.otherUserBubble,
+              highlightedMessageId === item.uuid && styles.highlightedBubble,
+            ]}
+          >
+            <Text style={styles.messageText}>
+              {item.text}
+              {item.edited ? " (edited)" : ""}
+            </Text>
+          </Pressable>
+        ) : null}
+
+        {/* Image */}
+        {item.image && (
+          <Pressable
+            onLongPress={() => {
+              setSelectedMessageId(item.uuid);
+              setHighlightedMessageId(item.uuid);
+            }}
+            style={[
+              styles.messageBubble,
+              isCurrentUser
+                ? styles.currentUserBubble
+                : styles.otherUserBubble,
+              highlightedMessageId === item.uuid && styles.highlightedBubble,
+            ]}
+          >
+            <Image source={{ uri: item.image }} style={styles.messageImage} />
+          </Pressable>
         )}
 
-        <View
-          style={[
-            styles.messageWrapper,
-            isCurrentUser ? styles.rightAlign : styles.leftAlign,
-          ]}
-        >
-          {item.text ? (
-            <Pressable
-              onLongPress={() => {
-                setSelectedMessageId(item.id);
-                setHighlightedMessageId(item.id);
-              }}
-              style={[
-                styles.messageBubble,
-                isCurrentUser
-                  ? styles.currentUserBubble
-                  : styles.otherUserBubble,
-                highlightedMessageId === item.id && styles.highlightedBubble,
-              ]}
-            >
-              <Text style={styles.messageText}>
-                {item.text}
-                {item.edited ? " (edited)" : ""}
-              </Text>
-            </Pressable>
-          ) : null}
+   {item.reactions.length > 0 && (
+  <View style={styles.reactionsRow}>
+    {item.reactions.map((reaction, idx) => (
+      <Text key={idx} style={styles.reaction}>
+        {reaction.value}
+      </Text>
+    ))}
+  </View>
+)}
 
-          {item.image && (
-            <Pressable
-              onLongPress={() => {
-                setSelectedMessageId(item.id);
-                setHighlightedMessageId(item.id);
-              }}
-              style={[
-                styles.messageBubble,
-                isCurrentUser
-                  ? styles.currentUserBubble
-                  : styles.otherUserBubble,
-                highlightedMessageId === item.id && styles.highlightedBubble,
-              ]}
-            >
-              <Image source={{ uri: item.image }} style={styles.messageImage} />
-            </Pressable>
-          )}
-
-          {Object.keys(item.reactions).length > 0 && (
-            <View style={styles.reactionsRow}>
-              {Object.entries(item.reactions).map(([emoji, count]) => (
-                <Text key={emoji} style={styles.reaction}>
-                  {emoji}
-                  {count > 1 ? ` ${count}` : ""}
-                </Text>
-              ))}
-            </View>
-          )}
-        </View>
       </View>
-    );
-  };
+    </View>
+  );
+};
 
   const handleSend = () => {
     if (inputText.trim() === "") return;
