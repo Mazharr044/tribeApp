@@ -4,9 +4,8 @@ import useParticipantStore from '../src/store/participantStore';
 
 export default function HomeScreen() {
   useParticipantStore.getState().fetchParticipants();
-
   return (
-     <SafeAreaView style={{flex:1,backgroundColor:'red'}}>
+     <SafeAreaView style={{flex:1,}}>
          <ChatScreen/>
      </SafeAreaView>
   );
